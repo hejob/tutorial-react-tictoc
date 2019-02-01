@@ -24,13 +24,8 @@ class Board extends React.Component {
     }
 
     render() {
-        const status = calculateWinner(this.props.squares) ? 
-            "Winner is " + (this.props.xIsNext ? "O" : "X") : 
-            "Next Player: " + (this.props.xIsNext ? "X" : "O");
-
         return (
             <div>
-                <div className="status">{status}</div>
                 <div className="board-row">
                     {this.renderSquare(0)}
                     {this.renderSquare(1)}
@@ -72,15 +67,36 @@ class Game extends React.Component {
         }
         squares[i] = this.state.xIsNext ? 'X' : 'O';
         this.setState({
-            history: this.state.history.concat([{
+            history: this.state.history.concat([{ //concat leaves history immutable
                 squares: squares
             }]),
             xIsNext: !this.state.xIsNext,
         });
     }
 
+    jumpTo(move) {
+        this.setState({
+            history: this.state.history.slice(0, move + 1),
+            xIsNext: (move % 2 === 0),
+        })
+    }
+
     render() {
         const currentSquares = this.state.history[this.state.history.length - 1];        
+        const status = calculateWinner(currentSquares.squares) ? 
+            "Winner is " + (this.state.xIsNext ? "O" : "X") : 
+            "Next Player: " + (this.state.xIsNext ? "X" : "O");
+        const moves = this.state.history.map((step, move) => {
+            const desc = move ?
+                'Jump to move #' + move:
+                'Jump to game start';
+            return (
+                <li key="move">
+                    <button onClick={() => this.jumpTo(move)}>{desc}</button>
+                </li>
+            );
+        });
+
         return (
             <div className="game">
                 <div className="game-board">
@@ -90,8 +106,8 @@ class Game extends React.Component {
                         onClick={(i) => this.handleClick(i)}/>
                 </div>
                 <div className="game-info">
-                    <div>{/* status */}</div>
-                    <div>{/* TODO */}</div>
+                    <div>{status}</div>
+                    <ol>{moves}</ol>
                 </div>
             </div>
         );
